@@ -7,35 +7,61 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Roboto', sans-serif; background-color: #FFFFFF; color: #111111; }
-    .header { background-color: #0051BA; color: white; padding: 1.2rem 0; }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #FFFFFF;
+      color: #111111;
+    }
+    .header {
+      background-color: #0051BA;
+      color: white;
+      padding: 1.3rem 0;
+    }
     .ikea-yellow { color: #FFCC00; }
-    .card { border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-radius: 8px; }
-    .table th { background-color: #0051BA; color: white; position: sticky; top: 0; z-index: 10; }
+    .card { border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 8px; }
+    .table th { 
+      background-color: #0051BA; 
+      color: white; 
+      position: sticky; 
+      top: 0; 
+      z-index: 10;
+      font-weight: 500;
+    }
     .alert-row { background-color: #FFF3E0 !important; }
-    .badge-critical { background-color: #F44336; }
-    .badge-warning { background-color: #FF9800; }
-    .badge-success { background-color: #4CAF50; }
+    .flag-oil { background-color: #FF9800; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.85rem; }
+    .flag-tech { background-color: #F44336; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.85rem; }
   </style>
 </head>
 <body>
 
 <div class="header text-center">
   <h1 style="margin:0; font-weight:700;">IKEA DRIVE <span class="ikea-yellow">FLEET</span></h1>
-  <p style="margin:0; opacity:0.9;">Vehicle Monitoring Dashboard</p>
+  <p style="margin:0; opacity:0.9;">Professional Vehicle Monitoring</p>
 </div>
 
 <div class="container-fluid p-4">
-  <div id="status" class="alert alert-info mb-3">Loading data from IKEA Drive...</div>
+  <div id="status" class="alert alert-info mb-3">Loading fleet data...</div>
 
-  <div class="row g-3 mb-4">
-    <div class="col-md-3 col-6"><div class="card h-100"><div class="card-body"><h6 class="text-muted">Total Vehicles</h6><h2 id="total" class="mb-0">0</h2></div></div></div>
-    <div class="col-md-3 col-6"><div class="card h-100"><div class="card-body"><h6 class="text-muted">Oil Change Due</h6><h2 id="oilDue" class="mb-0 text-warning">0</h2></div></div></div>
-    <div class="col-md-3 col-6"><div class="card h-100"><div class="card-body"><h6 class="text-muted">Expiry Soon</h6><h2 id="expiryDue" class="mb-0 text-danger">0</h2></div></div></div>
-    <div class="col-md-3 col-6"><div class="card h-100"><div class="card-body"><h6 class="text-muted">Active Alerts</h6><h2 id="alerts" class="mb-0 text-danger">0</h2></div></div></div>
+  <!-- Filters -->
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <input type="text" id="searchInput" class="form-control" placeholder="Search by Vehicle ID, Model, Branding..." onkeyup="filterTable()">
+    </div>
+    <div class="col-md-6">
+      <select id="zoneFilter" class="form-select" onchange="filterTable()">
+        <option value="">All Zones</option>
+        <!-- Zones will be populated automatically -->
+      </select>
+    </div>
   </div>
 
-  <input type="text" id="searchInput" class="form-control mb-3" placeholder="Search by Vehicle ID, Branding, Model..." onkeyup="filterTable()">
+  <!-- Summary -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3 col-6"><div class="card h-100"><div class="card-body"><h6>Total Vehicles</h6><h2 id="total" class="mb-0">0</h2></div></div></div>
+    <div class="col-md-3 col-6"><div class="card h-100"><div class="card-body"><h6>Oil Change Due</h6><h2 id="oilDue" class="mb-0 text-warning">0</h2></div></div></div>
+    <div class="col-md-3 col-6"><div class="card h-100"><div class="card-body"><h6>Technical Control Due</h6><h2 id="techDue" class="mb-0 text-danger">0</h2></div></div></div>
+    <div class="col-md-3 col-6"><div class="card h-100"><div class="card-body"><h6>Critical Alerts</h6><h2 id="alerts" class="mb-0 text-danger">0</h2></div></div></div>
+  </div>
 
   <div class="card">
     <div class="card-body p-0">
@@ -46,16 +72,14 @@
               <th>Vehicle ID</th>
               <th>Branding</th>
               <th>Model</th>
+              <th>Zone</th>
               <th>Alerts</th>
               <th>Next Oil Change</th>
               <th>Annual Diagnostic</th>
               <th>Reg. Expiry</th>
               <th>Insurance Expiry</th>
               <th>Mileage</th>
-              <th>Last Oil Change</th>
-              <th>Tyres Brand</th>
               <th>Owner</th>
-              <th>Jawaz</th>
               <th>GPS</th>
             </tr>
           </thead>
@@ -69,92 +93,94 @@
 <script>
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSeWe099H245LPEqHdOWqOD1TtGZuQUQxUe9BoiU_Q3z7_rMv_5eqUY2QYi2t2_2FxZ-zVZT7IfRtpj/pub?gid=633657895&single=true&output=csv";
 
+let allVehicles = [];
+
 async function loadData() {
   const status = document.getElementById('status');
-  status.textContent = "Loading data...";
-
   try {
     const response = await fetch(CSV_URL);
     const csvText = await response.text();
+    const rows = csvText.trim().split('\n').map(row => row.split(',').map(c => c.replace(/^"|"$/g, '').trim()));
 
-    const rows = csvText.trim().split('\n').map(row => 
-      row.split(',').map(cell => cell.replace(/^"|"$/g, '').trim())
-    );
-
-    const vehicles = [];
+    allVehicles = [];
     rows.slice(1).forEach(row => {
-      if (row.length < 15) return;
-      vehicles.push({
+      if (row.length < 20) return;
+      allVehicles.push({
         vehicleID: row[0] || '',
         branding: row[2] || '',
         model: row[4] || '',
+        zone: row[9] || '',                    // Assuming column for Zone (you can adjust)
         nextOilChange: row[19] || '',
         annualDiagnostic: row[20] || '',
         registrationExpiry: row[27] || '',
         insuranceExpiry: row[26] || '',
         mileage: row[15] || '',
-        lastOilChange: row[18] || '',
-        tyresBrand: row[22] || '',
         owner: row[8] || '',
-        jawaz: row[14] || '',
         gps: row[10] || '',
-        oilAlert: row[28] || '',
-        extraKMAlert: row[32] || ''
+        oilAlert: row[28] || ''
       });
     });
 
-    renderDashboard(vehicles);
+    renderDashboard(allVehicles);
+    populateZoneFilter();
     status.className = "alert alert-success";
-    status.textContent = `✅ Loaded ${vehicles.length} vehicles successfully`;
+    status.textContent = `✅ Loaded ${allVehicles.length} vehicles`;
   } catch (e) {
     status.className = "alert alert-danger";
-    status.textContent = "Failed to load. Refresh the page.";
+    status.textContent = "Failed to load data";
   }
+}
+
+function populateZoneFilter() {
+  const zones = [...new Set(allVehicles.map(v => v.zone).filter(z => z))];
+  const select = document.getElementById('zoneFilter');
+  select.innerHTML = '<option value="">All Zones</option>';
+  zones.forEach(zone => {
+    const opt = document.createElement('option');
+    opt.value = zone;
+    opt.textContent = zone;
+    select.appendChild(opt);
+  });
 }
 
 function renderDashboard(vehicles) {
   document.getElementById('total').textContent = vehicles.length;
 
-  let oilDue = 0, expiryDue = 0, totalAlerts = 0;
+  let oilDue = 0, techDue = 0, totalAlerts = 0;
   const tbody = document.querySelector("#vehicleTable tbody");
   tbody.innerHTML = "";
 
   vehicles.forEach(v => {
-    const hasOilAlert = v.oilAlert || isDueSoon(v.nextOilChange);
-    const hasExpiryAlert = isDueSoon(v.registrationExpiry) || isDueSoon(v.insuranceExpiry);
-    const hasAnyAlert = hasOilAlert || hasExpiryAlert;
+    const oilFlag = isDueSoon(v.nextOilChange) ? `<span class="flag-oil">Oil Change</span>` : '';
+    const techFlag = isDueSoon(v.annualDiagnostic) ? `<span class="flag-tech">Tech Control</span>` : '';
+    const hasAlert = oilFlag || techFlag;
 
-    if (hasOilAlert) oilDue++;
-    if (hasExpiryAlert) expiryDue++;
-    if (hasAnyAlert) totalAlerts++;
+    if (isDueSoon(v.nextOilChange)) oilDue++;
+    if (isDueSoon(v.annualDiagnostic)) techDue++;
+    if (hasAlert) totalAlerts++;
 
     const row = document.createElement('tr');
-    if (hasAnyAlert) row.classList.add('alert-row');
+    if (hasAlert) row.classList.add('alert-row');
 
     row.innerHTML = `
       <td><strong>${v.vehicleID}</strong></td>
       <td>${v.branding}</td>
       <td>${v.model}</td>
-      <td>
-        ${hasOilAlert ? '<span class="badge badge-warning me-1">Oil Due</span>' : ''}
-        ${hasExpiryAlert ? '<span class="badge badge-critical me-1">Expiry</span>' : '<span class="badge badge-success">Normal</span>'}
-      </td>
+      <td>${v.zone}</td>
+      <td>${oilFlag} ${techFlag}</td>
       <td>${v.nextOilChange}</td>
       <td>${v.annualDiagnostic}</td>
       <td>${v.registrationExpiry}</td>
       <td>${v.insuranceExpiry}</td>
       <td>${v.mileage}</td>
-      <td>${v.lastOilChange}</td>
-      <td>${v.tyresBrand}</td>
       <td>${v.owner}</td>
-      <td>${v.jawaz}</td>
       <td>${v.gps}</td>
     `;
     tbody.appendChild(row);
   });
 
   document.getElementById('oilDue').textContent = oilDue;
-  document.getElementById('expiryDue').textContent = expiryDue;
+  document.getElementById('techDue').textContent = techDue;
   document.getElementById('alerts').textContent = totalAlerts;
 }
 
@@ -162,16 +188,25 @@ function isDueSoon(dateStr) {
   if (!dateStr) return false;
   const due = new Date(dateStr);
   const today = new Date();
-  return (due - today) / (1000 * 3600 * 24) <= 45;
+  const diff = (due - today) / (1000 * 3600 * 24);
+  return diff <= 45 && diff >= -5;
 }
 
 function filterTable() {
-  const term = document.getElementById("searchInput").value.toUpperCase();
-  document.querySelectorAll("#vehicleTable tbody tr").forEach(row => {
-    row.style.display = row.textContent.toUpperCase().includes(term) ? "" : "none";
+  const searchTerm = document.getElementById('searchInput').value.toUpperCase();
+  const selectedZone = document.getElementById('zoneFilter').value;
+
+  const filtered = allVehicles.filter(v => {
+    const matchSearch = !searchTerm || 
+      (v.vehicleID + v.branding + v.model + v.zone).toUpperCase().includes(searchTerm);
+    const matchZone = !selectedZone || v.zone === selectedZone;
+    return matchSearch && matchZone;
   });
+
+  renderDashboard(filtered);
 }
 
+// Initial load
 loadData();
 setInterval(loadData, 180000);
 </script>
