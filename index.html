@@ -3,206 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>D&A Drive — Fleet Dashboard</title>
+<title>D&A Drive — Fleet Control Center</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --blue:#0047AB;--blue-d:#003380;--blue-l:#e8f0fb;--blue-m:#1a5fd4;
-  --yellow:#FFD600;--yellow-d:#C9AA00;
-  --bg:#F2F0EB;--white:#fff;--bd:#E0DDD6;--bd-l:#EDEBE6;
-  --t1:#111;--t2:#555;--t3:#999;
-  --danger:#C0392B;--danger-bg:#fdf0ef;--danger-bd:#e8a9a4;
-  --warn:#B45309;--warn-bg:#fef9ec;--warn-bd:#f0d080;
-  --ok:#15803D;--ok-bg:#f0faf4;--ok-bd:#86efac;
-  --info:#1D4ED8;--info-bg:#eff6ff;
-  --r:6px;--r-lg:10px;
-  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
-  --shadow:0 1px 3px rgba(0,0,0,.08);
-}
-body{font-family:var(--font);background:var(--bg);color:var(--t1);font-size:13px;min-height:100vh}
-
-/* HEADER */
-.hdr{background:var(--blue);color:#fff;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,47,.18)}
-.logo{background:var(--yellow);color:var(--blue-d);font-weight:600;font-size:13px;padding:5px 12px;border-radius:4px;letter-spacing:.3px}
-.hdr-mid{display:flex;flex-direction:column;align-items:center;gap:2px}
-.hdr-title{font-size:15px;font-weight:600;letter-spacing:-.2px}
-.hdr-sub{font-size:11px;opacity:.6}
-.hdr-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
-.sync-bar{display:flex;align-items:center;gap:8px}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:#4ade80}
-.sync-dot.stale{background:var(--yellow)}
-.sync-dot.err{background:#f87171}
-.sync-lbl{font-size:11px;opacity:.7}
-.sync-btn{background:rgba(255,255,255,.12);border:none;color:#fff;font-size:11px;font-family:var(--font);padding:3px 10px;border-radius:3px;cursor:pointer;transition:background .15s}
-.sync-btn:hover{background:rgba(255,255,255,.22)}
-.clock{font-size:11px;opacity:.55}
-
-/* USER BADGE */
-.user-badge{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);border-radius:3px;padding:3px 10px;font-size:11px;cursor:pointer;transition:background .15s}
-.user-badge:hover{background:rgba(255,255,255,.22)}
-
-/* TABS */
-.tabs{background:var(--blue-d);display:flex;padding:0 24px;gap:0;border-bottom:2px solid var(--yellow)}
-.tab{padding:10px 18px;font-size:12px;font-weight:500;color:rgba(255,255,255,.55);cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;user-select:none;letter-spacing:.2px}
-.tab:hover{color:#fff}
-.tab.active{color:var(--yellow);border-bottom-color:var(--yellow)}
-
-/* LAYOUT */
-.content{padding:20px 24px;min-height:calc(100vh - 110px)}
-.page{display:none}.page.active{display:block}
-
-/* KPI */
-.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px}
-.kpi{background:var(--white);border-radius:var(--r-lg);padding:14px 16px;border:1px solid var(--bd);border-top:3px solid var(--accent,var(--blue));box-shadow:var(--shadow)}
-.kpi-label{font-size:10px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
-.kpi-val{font-size:26px;font-weight:600;color:var(--accent,var(--blue));line-height:1;letter-spacing:-1px}
-.kpi-sub{font-size:10px;color:var(--t3);margin-top:4px}
-
-/* ALERTS */
-.alert-wrap{margin-bottom:16px;display:flex;flex-direction:column;gap:8px}
-.alert{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:var(--r);font-size:12px;border:1px solid}
-.alert-danger{background:var(--danger-bg);border-color:var(--danger-bd);color:var(--danger)}
-.alert-warn{background:var(--warn-bg);border-color:var(--warn-bd);color:var(--warn)}
-
-/* GRID */
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
-
-/* SECTION */
-.sec{background:var(--white);border:1px solid var(--bd);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow)}
-.sec-title{font-size:11px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--bd-l);display:flex;align-items:center;justify-content:space-between;gap:6px}
-.sec-title-left{display:flex;align-items:center;gap:6px}
-
-/* BAR */
-.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.bar-label{font-size:12px;color:var(--t2);width:100px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bar-track{flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden}
-.bar-fill{height:100%;border-radius:4px;transition:width .4s}
-.bar-val{font-size:12px;font-weight:600;min-width:20px;text-align:right;color:var(--t1)}
-
-/* BADGES */
-.badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;padding:2px 7px;border-radius:3px;white-space:nowrap;letter-spacing:.2px}
-.b-danger{background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger-bd)}
-.b-warn{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-bd)}
-.b-ok{background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok-bd)}
-.b-gray{background:#F2F0EB;color:#666;border:1px solid var(--bd)}
-.b-info{background:var(--info-bg);color:var(--info);border:1px solid #bfdbfe}
-
-/* MAINT ITEMS */
-.m-list{display:flex;flex-direction:column;gap:6px}
-.m-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--r);border:1px solid var(--bd);background:var(--bg);cursor:pointer;transition:all .12s}
-.m-item:hover{background:var(--blue-l);border-color:#b8d0f5}
-.m-info{flex:1;min-width:0}
-.m-veh{font-size:12px;font-weight:600}
-.m-meta{font-size:10px;color:var(--t3);margin-top:2px}
-.m-right{text-align:right;flex-shrink:0}
-.m-km{font-size:12px;font-weight:600}
-.m-sub{font-size:10px;color:var(--t3);margin-top:1px}
-
-/* PILL */
-.pill{display:inline-block;background:var(--blue-l);color:var(--blue);font-size:10px;font-weight:600;padding:2px 6px;border-radius:3px}
-
-/* TABLE */
-.tbl{width:100%;border-collapse:collapse;font-size:12px}
-.tbl th{background:#EDEBE6;padding:8px 10px;text-align:left;font-weight:600;font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--bd);white-space:nowrap;position:sticky;top:0}
-.tbl td{padding:7px 10px;border-bottom:1px solid var(--bd-l);vertical-align:middle}
-.tbl tr:hover td{background:var(--blue-l)}
-.tbl tr.clickable{cursor:pointer}
-.tbl-wrap{overflow:auto;border-radius:var(--r-lg);border:1px solid var(--bd);max-height:calc(100vh - 260px)}
-
-/* FILTERS */
-.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
-.fbtn{padding:5px 12px;font-size:11px;border:1px solid var(--bd);border-radius:3px;background:var(--white);cursor:pointer;color:var(--t2);font-family:var(--font);transition:all .1s}
-.fbtn:hover{border-color:var(--blue);color:var(--blue)}
-.fbtn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
-
-/* SEARCH */
-.srch{padding:6px 11px;border:1px solid var(--bd);border-radius:var(--r);font-family:var(--font);font-size:12px;width:200px;outline:none;background:var(--white)}
-.srch:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,71,171,.1)}
-.row-tools{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-.count-lbl{font-size:11px;color:var(--t3)}
-
-/* MINI BUTTON */
-.btn{padding:5px 12px;font-size:11px;border-radius:var(--r);border:1px solid;cursor:pointer;font-family:var(--font);transition:all .12s;font-weight:500}
-.btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}
-.btn-primary:hover{background:var(--blue-m)}
-.btn-outline{background:var(--white);color:var(--t1);border-color:var(--bd)}
-.btn-outline:hover{border-color:var(--blue);color:var(--blue)}
-.btn-danger{background:var(--danger-bg);color:var(--danger);border-color:var(--danger-bd)}
-.btn-ok{background:var(--ok-bg);color:var(--ok);border-color:var(--ok-bd)}
-.btn-ok:hover{background:var(--ok);color:#fff}
-.btn-sm{padding:3px 9px;font-size:10px}
-
-/* ACTION BUTTONS IN TABLE */
-.act-btn{padding:3px 9px;font-size:10px;border-radius:3px;border:1px solid var(--bd);background:var(--white);cursor:pointer;font-family:var(--font);color:var(--t2);white-space:nowrap;transition:all .1s}
-.act-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-l)}
-.act-btn.oil{border-color:var(--ok-bd);color:var(--ok);background:var(--ok-bg)}
-.act-btn.diag{border-color:#bfdbfe;color:var(--info);background:var(--info-bg)}
-
-/* MODAL */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:center;justify-content:center}
-.overlay.open{display:flex}
-.modal{background:var(--white);border-radius:var(--r-lg);width:540px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.18)}
-.modal-hdr{padding:16px 20px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
-.modal-title{font-size:14px;font-weight:600}
-.modal-sub{font-size:11px;color:var(--t3);margin-top:2px}
-.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--t3);line-height:1;padding:4px}
-.modal-close:hover{color:var(--t1)}
-.modal-body{padding:20px}
-.modal-foot{padding:12px 20px;border-top:1px solid var(--bd);display:flex;justify-content:flex-end;gap:8px}
-.modal-saving{padding:12px 20px;border-top:1px solid var(--bd);text-align:center;font-size:12px;color:var(--t3)}
-
-/* FORM */
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.form-field{display:flex;flex-direction:column;gap:4px}
-.form-field.full{grid-column:1/-1}
-.form-label{font-size:10px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.4px}
-.form-input{padding:7px 10px;border:1px solid var(--bd);border-radius:var(--r);font-family:var(--font);font-size:12px;outline:none;background:var(--white);transition:border .12s}
-.form-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,71,171,.1)}
-.form-input[readonly]{background:var(--bg);color:var(--t2)}
-select.form-input{cursor:pointer}
-.form-hint{font-size:10px;color:var(--t3);margin-top:2px}
-
-/* LOG TABLE */
-.log-row-type{font-weight:500}
-.mono{font-family:var(--mono);font-size:11px}
-
-/* DONUT */
-.donut-wrap{display:flex;align-items:center;gap:20px}
-.donut-leg{display:flex;flex-direction:column;gap:6px;flex:1}
-.leg-row{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--t2)}
-.leg-sq{width:10px;height:10px;border-radius:2px;flex-shrink:0}
-
-/* TOAST */
-.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:300;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-.toast{background:var(--t1);color:#fff;padding:10px 16px;border-radius:var(--r);font-size:12px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,.2);opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none}
-.toast.show{opacity:1;transform:translateY(0)}
-.toast.ok{background:var(--ok)}
-.toast.err{background:var(--danger)}
-.toast.warn{background:var(--warn)}
-
-/* LOADING */
-.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.8);z-index:400;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px}
-.spinner{width:32px;height:32px;border:3px solid var(--bd);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* SCHED */
-.sched-card{background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:12px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:all .12s}
-.sched-card:hover{border-color:var(--blue);background:var(--blue-l)}
-.sched-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px}
-.sched-list{display:flex;flex-direction:column;gap:8px}
-</style>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<!-- LOADING -->
 <div class="loading-overlay" id="loadingOverlay">
   <div class="spinner"></div>
-  <div style="font-size:13px;color:var(--t2)">Loading fleet data…</div>
+  <div style="font-size:13px;color:var(--t2)">Synchronizing secure network configurations…</div>
 </div>
 
-<!-- HEADER -->
 <div class="hdr">
   <div class="logo">D&A DRIVE</div>
   <div class="hdr-mid">
@@ -212,7 +23,7 @@ select.form-input{cursor:pointer}
   <div class="hdr-right">
     <div class="sync-bar">
       <div class="sync-dot" id="syncDot"></div>
-      <span class="sync-lbl" id="syncLbl">Connecting…</span>
+      <span class="sync-lbl" id="syncLbl">Initializing System Connection…</span>
       <button class="sync-btn" onclick="fetchData(true)">↻ Refresh</button>
       <button class="user-badge" id="userBadge" onclick="promptUser()">👤 <span id="userName">…</span></button>
     </div>
@@ -220,152 +31,151 @@ select.form-input{cursor:pointer}
   </div>
 </div>
 
-<!-- TABS -->
 <div class="tabs">
   <div class="tab active" onclick="showPage('overview',this)">📊 Overview</div>
-  <div class="tab" onclick="showPage('oil',this)">🛢 Oil Changes</div>
   <div class="tab" onclick="showPage('fleet',this)">🚐 Fleet</div>
-  <div class="tab" onclick="showPage('diag',this)">📅 Annual Diagnostic</div>
   <div class="tab" onclick="showPage('schedule',this)">🗓 Schedule</div>
+  <div class="tab" onclick="showPage('oil',this)">🛢 Oil Changes</div>
+  <div class="tab" onclick="showPage('diag',this)">📅 Annual Diagnostic</div>
   <div class="tab" onclick="showPage('log',this)">📋 Activity Log</div>
 </div>
 
 <div class="content">
 
-<!-- OVERVIEW -->
-<div class="page active" id="page-overview">
-  <div class="kpi-row" id="kpiRow"></div>
-  <div class="alert-wrap" id="alertBanner"></div>
-  <div class="grid2">
-    <div class="sec">
-      <div class="sec-title"><span class="sec-title-left">🚐 Fleet by model</span></div>
-      <div class="donut-wrap">
-        <canvas id="typeChart" width="120" height="120" style="flex-shrink:0"></canvas>
-        <div class="donut-leg" id="typeLegend"></div>
+  <div class="page active" id="page-overview">
+    <div class="report-strip">
+      <button class="btn btn-primary" onclick="exportExecutivePDF()">📥 Extract Operational PDF Report</button>
+    </div>
+    <div class="kpi-row" id="kpiRow"></div>
+    <div class="alert-wrap" id="alertBanner"></div>
+    
+    <div class="grid3">
+      <div class="sec">
+        <div class="sec-title"><span class="sec-title-left">Fleet Mix Metrics</span></div>
+        <div class="donut-wrap">
+          <div class="chart-container">
+            <canvas id="typeChart"></canvas>
+          </div>
+          <div class="donut-leg" id="typeLegend"></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-title"><span class="sec-title-left">Active Zone Distribution</span></div>
+        <div id="zoneBars"></div>
+      </div>
+      <div class="sec">
+        <div class="sec-title"><span class="sec-title-left">Daily Scanning Operations</span></div>
+        <div class="scan-analytics-wrap">
+          <input type="date" id="scanGraphDate" class="form-input" onchange="loadScanGraphAnalytics()">
+          <div class="chart-container-scan">
+            <canvas id="scanPerformanceChart"></canvas>
+          </div>
+          <div id="scanUnscannedList" class="unscanned-roster-box"></div>
+        </div>
       </div>
     </div>
+    
     <div class="sec">
-      <div class="sec-title"><span class="sec-title-left">📍 Fleet by zone</span></div>
-      <div id="zoneBars"></div>
+      <div class="sec-title"><span class="sec-title-left">Critical Priority — Next Oil Changes</span></div>
+      <div class="m-list" id="oilUrgent"></div>
     </div>
   </div>
-  <div class="sec">
-    <div class="sec-title"><span class="sec-title-left">⚠️ Top 10 — closest to oil change</span></div>
-    <div class="m-list" id="oilUrgent"></div>
+
+  <div class="page" id="page-fleet">
+    <div class="row-tools">
+      <div class="filters-inline">
+        <input class="srch" type="text" id="fleetFilterId" placeholder="Filter Vehicle ID…" oninput="renderFleet()">
+        <input class="srch" type="text" id="fleetFilterZone" placeholder="Filter Zone/Function…" oninput="renderFleet()">
+      </div>
+      <button class="btn btn-primary" onclick="openAddVehicleModal()">+ Add New Vehicle Asset</button>
+      <span class="count-lbl" id="fleetCount"></span>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr>
+          <th>Vehicle ID</th><th>Origin ID</th><th>Model</th><th>Zone / Function</th>
+          <th>Chassis</th><th>Mileage</th><th>Last Check</th><th>Fuel Card</th>
+          <th>PIN</th><th>Jawaz</th><th>Tyres</th><th>Oil</th><th>Diag Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="fleetTbody"></tbody>
+      </table>
+    </div>
   </div>
+
+  <div class="page" id="page-schedule">
+    <div class="row-tools">
+      <div class="filters-inline">
+        <input class="srch" type="text" id="schedFilterId" placeholder="Filter Vehicle ID…" oninput="renderSchedule()">
+        <input class="srch" type="text" id="schedFilterZone" placeholder="Filter Zone/Function…" oninput="renderSchedule()">
+      </div>
+      <button class="btn btn-primary" onclick="openScheduleModal()">+ Schedule Preventative Maintenance</button>
+      <span class="count-lbl" id="schedCount"></span>
+    </div>
+    <div class="sched-list" id="schedList"></div>
+  </div>
+
+  <div class="page" id="page-oil">
+    <div class="row-tools">
+      <div class="filters-inline">
+        <input class="srch" type="text" id="oilFilterId" placeholder="Filter Vehicle ID…" oninput="renderOil()">
+        <input class="srch" type="text" id="oilFilterZone" placeholder="Filter Zone/Function…" oninput="renderOil()">
+      </div>
+      <span class="count-lbl" id="oilCount"></span>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr>
+          <th>Vehicle ID</th><th>Model</th><th>Zone / Function</th><th>Current odometer</th>
+          <th>Last Service km</th><th>Target Service km</th><th>Remaining Lifespan</th><th>Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="oilTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="page" id="page-diag">
+    <div class="row-tools">
+      <div class="filters-inline">
+        <input class="srch" type="text" id="diagFilterId" placeholder="Filter Vehicle ID…" oninput="renderDiag()">
+        <input class="srch" type="text" id="diagFilterZone" placeholder="Filter Zone/Function…" oninput="renderDiag()">
+      </div>
+      <span class="count-lbl" id="diagCount"></span>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr>
+          <th>Vehicle ID</th><th>Model</th><th>Zone / Function</th><th>Diagnostic Expiry</th><th>Days remaining</th><th>Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="diagTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="page" id="page-log">
+    <div class="row-tools">
+      <input class="srch" type="text" id="logSearch" placeholder="Search vehicle, user, action…" oninput="renderLog()">
+      <span class="count-lbl" id="logCount"></span>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr>
+          <th>Time Record</th><th>Vehicle ID</th><th>Type</th><th>KM At Event</th>
+          <th>Scheduled Target</th><th>Mechanic/Garage</th><th>Operator</th><th>Notes</th>
+        </tr></thead>
+        <tbody id="logTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 
-<!-- OIL CHANGES -->
-<div class="page" id="page-oil">
-  <div class="filters" id="oilFilters">
-    <button class="fbtn active" onclick="filterOil('all',this)">All</button>
-    <button class="fbtn" onclick="filterOil('overdue',this)">🔴 Overdue</button>
-    <button class="fbtn" onclick="filterOil('critical',this)">🟠 &lt;2,000 km</button>
-    <button class="fbtn" onclick="filterOil('soon',this)">🟡 &lt;5,000 km</button>
-    <button class="fbtn" onclick="filterOil('ok',this)">🟢 OK</button>
-  </div>
-  <div class="row-tools">
-    <input class="srch" type="text" id="oilSearch" placeholder="Search ID, model, zone…" oninput="renderOil()">
-    <span class="count-lbl" id="oilCount"></span>
-  </div>
-  <div class="tbl-wrap">
-    <table class="tbl">
-      <thead><tr>
-        <th>Vehicle</th><th>Model</th><th>Zone</th>
-        <th>Current km</th><th>Last oil km</th><th>Next oil km</th>
-        <th>Remaining</th><th>Status</th><th>Actions</th>
-      </tr></thead>
-      <tbody id="oilTbody"></tbody>
-    </table>
-  </div>
-</div>
-
-<!-- FLEET -->
-<div class="page" id="page-fleet">
-  <div class="filters" id="fleetFilters">
-    <button class="fbtn active" onclick="filterFleet('all',this)">All zones</button>
-    <button class="fbtn" onclick="filterFleet('CAS',this)">Casablanca</button>
-    <button class="fbtn" onclick="filterFleet('RBA',this)">Rabat</button>
-    <button class="fbtn" onclick="filterFleet('RAK',this)">Marrakech</button>
-    <button class="fbtn" onclick="filterFleet('AGA',this)">Agadir</button>
-    <button class="fbtn" onclick="filterFleet('MKS',this)">Meknès</button>
-    <button class="fbtn" onclick="filterFleet('TRS',this)">Transport</button>
-    <button class="fbtn" onclick="filterFleet('CAB',this)">Tanger/CAB</button>
-  </div>
-  <div class="row-tools">
-    <input class="srch" type="text" id="fleetSearch" placeholder="Search ID, model, chassis…" oninput="renderFleet()">
-    <span class="count-lbl" id="fleetCount"></span>
-  </div>
-  <div class="tbl-wrap">
-    <table class="tbl">
-      <thead><tr>
-        <th>ID</th><th>Origin ID</th><th>Model</th><th>Zone</th>
-        <th>Chassis</th><th>Mileage</th><th>Last Check</th>
-        <th>Fuel Card</th><th>PIN</th><th>Jawaz</th>
-        <th>Tyres</th><th>Oil</th><th>Diag</th><th>Actions</th>
-      </tr></thead>
-      <tbody id="fleetTbody"></tbody>
-    </table>
-  </div>
-</div>
-
-<!-- ANNUAL DIAGNOSTIC -->
-<div class="page" id="page-diag">
-  <div class="filters" id="diagFilters">
-    <button class="fbtn active" onclick="filterDiag('all',this)">All</button>
-    <button class="fbtn" onclick="filterDiag('overdue',this)">🔴 Overdue</button>
-    <button class="fbtn" onclick="filterDiag('month1',this)">🟠 &lt;1 month</button>
-    <button class="fbtn" onclick="filterDiag('month3',this)">🟡 &lt;3 months</button>
-    <button class="fbtn" onclick="filterDiag('ok',this)">🟢 OK</button>
-  </div>
-  <div class="tbl-wrap">
-    <table class="tbl">
-      <thead><tr>
-        <th>Vehicle</th><th>Model</th><th>Zone</th>
-        <th>Diag expiry</th><th>Days left</th><th>Status</th><th>Actions</th>
-      </tr></thead>
-      <tbody id="diagTbody"></tbody>
-    </table>
-  </div>
-</div>
-
-<!-- SCHEDULE -->
-<div class="page" id="page-schedule">
-  <div class="row-tools">
-    <button class="btn btn-primary" onclick="openScheduleModal()">+ Schedule maintenance</button>
-    <span class="count-lbl" id="schedCount"></span>
-  </div>
-  <div class="sched-list" id="schedList"></div>
-</div>
-
-<!-- ACTIVITY LOG -->
-<div class="page" id="page-log">
-  <div class="row-tools">
-    <input class="srch" type="text" id="logSearch" placeholder="Search vehicle, user, action…" oninput="renderLog()">
-    <span class="count-lbl" id="logCount"></span>
-  </div>
-  <div class="tbl-wrap">
-    <table class="tbl">
-      <thead><tr>
-        <th>Time</th><th>Vehicle</th><th>Type</th><th>KM</th>
-        <th>Scheduled</th><th>Mechanic</th><th>User</th><th>Notes</th>
-      </tr></thead>
-      <tbody id="logTbody"></tbody>
-    </table>
-  </div>
-</div>
-
-</div><!-- end content -->
-
-<!-- TOASTS -->
 <div class="toast-wrap" id="toastWrap"></div>
 
-<!-- EDIT VEHICLE MODAL -->
 <div class="overlay" id="editOverlay">
   <div class="modal">
     <div class="modal-hdr">
       <div>
-        <div class="modal-title" id="editModalTitle">Edit vehicle</div>
+        <div class="modal-title" id="editModalTitle">Modify Asset Properties</div>
         <div class="modal-sub" id="editModalSub"></div>
       </div>
       <button class="modal-close" onclick="closeModal('editOverlay')">×</button>
@@ -374,36 +184,71 @@ select.form-input{cursor:pointer}
       <div class="form-grid">
         <div class="form-field"><label class="form-label">Vehicle ID</label><input class="form-input" id="ef-id" readonly></div>
         <div class="form-field"><label class="form-label">Origin ID</label><input class="form-input" id="ef-originid"></div>
-        <div class="form-field"><label class="form-label">Model</label><input class="form-input" id="ef-model"></div>
-        <div class="form-field"><label class="form-label">Function / Zone</label><input class="form-input" id="ef-fn"></div>
-        <div class="form-field"><label class="form-label">Chassis</label><input class="form-input" id="ef-chassis"></div>
-        <div class="form-field"><label class="form-label">Owner</label><input class="form-input" id="ef-owner"></div>
-        <div class="form-field"><label class="form-label">Current mileage</label><input class="form-input" type="number" id="ef-km"></div>
-        <div class="form-field"><label class="form-label">Last oil change km</label><input class="form-input" type="number" id="ef-lastoil"></div>
-        <div class="form-field"><label class="form-label">Annual diagnostic expiry</label><input class="form-input" id="ef-diag" placeholder="DD/MM/YYYY"></div>
-        <div class="form-field"><label class="form-label">Reg. expiry</label><input class="form-input" id="ef-regexp" placeholder="DD/MM/YYYY"></div>
-        <div class="form-field"><label class="form-label">Fuel card</label><input class="form-input" id="ef-fuelcard"></div>
-        <div class="form-field"><label class="form-label">PIN</label><input class="form-input" id="ef-pin"></div>
-        <div class="form-field"><label class="form-label">Jawaz</label><input class="form-input" id="ef-jawaz"></div>
-        <div class="form-field"><label class="form-label">Tyres ref.</label><input class="form-input" id="ef-tyreref"></div>
-        <div class="form-field"><label class="form-label">Tyres brand</label><input class="form-input" id="ef-tyrebrand"></div>
-        <div class="form-field"><label class="form-label">Rent mileage</label><input class="form-input" type="number" id="ef-rentmile"></div>
-        <div class="form-field full"><label class="form-label">Notes</label><input class="form-input" id="ef-notes" placeholder="Optional note…"></div>
+        <div class="form-field"><label class="form-label">Model Name</label><input class="form-input" id="ef-model"></div>
+        <div class="form-field"><label class="form-label">Zone / Function</label><input class="form-input" id="ef-fn"></div>
+        <div class="form-field"><label class="form-label">Chassis Serial</label><input class="form-input" id="ef-chassis"></div>
+        <div class="form-field"><label class="form-label">Asset Owner</label><input class="form-input" id="ef-owner"></div>
+        <div class="form-field"><label class="form-label">Odometer (KM)</label><input class="form-input" type="number" id="ef-km"></div>
+        <div class="form-field"><label class="form-label">Last Oil Service Odometer</label><input class="form-input" type="number" id="ef-lastoil"></div>
+        <div class="form-field"><label class="form-label">Annual Diagnostic Expiry</label><input class="form-input" type="date" id="ef-diag"></div>
+        <div class="form-field"><label class="form-label">Registration Expiry</label><input class="form-input" type="date" id="ef-regexp"></div>
+        <div class="form-field"><label class="form-label">Fuel Card reference</label><input class="form-input" id="ef-fuelcard"></div>
+        <div class="form-field"><label class="form-label">Secure Card PIN</label><input class="form-input" id="ef-pin"></div>
+        <div class="form-field"><label class="form-label">Jawaz Tag reference</label><input class="form-input" id="ef-jawaz"></div>
+        <div class="form-field"><label class="form-label">Tyres Dimensions</label><input class="form-input" id="ef-tyreref"></div>
+        <div class="form-field"><label class="form-label">Tyres Brand Manufacturer</label><input class="form-input" id="ef-tyrebrand"></div>
+        <div class="form-field"><label class="form-label">Contract Rental Mileage</label><input class="form-input" type="number" id="ef-rentmile"></div>
+        <div class="form-field full"><label class="form-label">Internal Log Remarks</label><input class="form-input" id="ef-notes" placeholder="Append operational update notes…"></div>
       </div>
     </div>
-    <div class="modal-foot" id="editModalFoot">
-      <button class="btn btn-outline" onclick="closeModal('editOverlay')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveEdit()">Save changes</button>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('editOverlay')">Cancel Operations</button>
+      <button class="btn btn-primary" onclick="executeSecurePostAction('updateVehicle')">Commit Security Writes</button>
     </div>
   </div>
 </div>
 
-<!-- OIL CHANGE MODAL -->
+<div class="overlay" id="addVehicleOverlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-title">Register New Fleet Asset</div>
+        <div class="modal-sub">Appends a clean record into the master system repository</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('addVehicleOverlay')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field"><label class="form-label">Vehicle ID (Required)</label><input class="form-input" id="af-id" placeholder="e.g. V-105"></div>
+        <div class="form-field"><label class="form-label">Origin ID</label><input class="form-input" id="af-originid"></div>
+        <div class="form-field"><label class="form-label">Model Profile Name</label><input class="form-input" id="af-model" placeholder="e.g. Renault Kangoo"></div>
+        <div class="form-field"><label class="form-label">Operational Zone / Function</label><input class="form-input" id="af-fn" placeholder="e.g. CAS - Interior Workspaces"></div>
+        <div class="form-field"><label class="form-label">Chassis Serial Number</label><input class="form-input" id="af-chassis"></div>
+        <div class="form-field"><label class="form-label">Fleet Asset Owner</label><input class="form-input" id="af-owner" placeholder="e.g. IKEA Morocco"></div>
+        <div class="form-field"><label class="form-label">Current Mileage (KM)</label><input class="form-input" type="number" id="af-km" value="0"></div>
+        <div class="form-field"><label class="form-label">Last Oil Service KM</label><input class="form-input" type="number" id="af-lastoil" value="0"></div>
+        <div class="form-field"><label class="form-label">Annual Diagnostic Expiry</label><input class="form-input" type="date" id="af-diag"></div>
+        <div class="form-field"><label class="form-label">Registration Expiry</label><input class="form-input" type="date" id="af-regexp"></div>
+        <div class="form-field"><label class="form-label">Fuel Card Number</label><input class="form-input" id="af-fuelcard"></div>
+        <div class="form-field"><label class="form-label">Fuel Card PIN</label><input class="form-input" id="af-pin"></div>
+        <div class="form-field"><label class="form-label">Jawaz Tag Code</label><input class="form-input" id="af-jawaz"></div>
+        <div class="form-field"><label class="form-label">Tyre Specifications</label><input class="form-input" id="af-tyreref"></div>
+        <div class="form-field"><label class="form-label">Tyre Manufacturer Brand</label><input class="form-input" id="af-tyrebrand"></div>
+        <div class="form-field"><label class="form-label">Rental Contract Mileage Cap</label><input class="form-input" type="number" id="af-rentmile" value="0"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('addVehicleOverlay')">Abort Insertion</button>
+      <button class="btn btn-primary" onclick="executeSecurePostAction('addVehicle')">Commit Asset Insertion</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="oilOverlay">
   <div class="modal" style="width:380px">
     <div class="modal-hdr">
       <div>
-        <div class="modal-title">Log oil change</div>
+        <div class="modal-title">Log Oil Change Execution</div>
         <div class="modal-sub" id="oilModalSub"></div>
       </div>
       <button class="modal-close" onclick="closeModal('oilOverlay')">×</button>
@@ -411,29 +256,28 @@ select.form-input{cursor:pointer}
     <div class="modal-body">
       <div class="form-grid" style="grid-template-columns:1fr">
         <div class="form-field">
-          <label class="form-label">Current mileage (km)</label>
-          <input class="form-input" type="number" id="oil-km" placeholder="Enter current odometer reading">
+          <label class="form-label">Odometer Reading At Execution (KM)</label>
+          <input class="form-input" type="number" id="oil-km">
           <div class="form-hint" id="oil-hint"></div>
         </div>
         <div class="form-field">
-          <label class="form-label">Notes (optional)</label>
-          <input class="form-input" id="oil-note" placeholder="e.g. Filter also replaced">
+          <label class="form-label">Structural Mechanics Comments</label>
+          <input class="form-input" id="oil-note" placeholder="e.g. Replaced oil, air filters and engine gaskets">
         </div>
       </div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeModal('oilOverlay')">Cancel</button>
-      <button class="btn btn-ok" onclick="saveOilChange()">✓ Confirm oil change</button>
+      <button class="btn btn-ok" onclick="executeSecurePostAction('logOilChange')">✓ Confirm Execution</button>
     </div>
   </div>
 </div>
 
-<!-- DIAG MODAL -->
 <div class="overlay" id="diagOverlay">
   <div class="modal" style="width:380px">
     <div class="modal-hdr">
       <div>
-        <div class="modal-title">Renew annual diagnostic</div>
+        <div class="modal-title">Log Annual Diagnostic Inspection Renewal</div>
         <div class="modal-sub" id="diagModalSub"></div>
       </div>
       <button class="modal-close" onclick="closeModal('diagOverlay')">×</button>
@@ -441,37 +285,33 @@ select.form-input{cursor:pointer}
     <div class="modal-body">
       <div class="form-grid" style="grid-template-columns:1fr">
         <div class="form-field">
-          <label class="form-label">New expiry date</label>
-          <input class="form-input" id="diag-date" placeholder="DD/MM/YYYY">
+          <label class="form-label">New Validation Certificate Expiration Date</label>
+          <input class="form-input" type="date" id="diag-date">
         </div>
         <div class="form-field">
-          <label class="form-label">Notes (optional)</label>
-          <input class="form-input" id="diag-note" placeholder="e.g. Renewed at centre Aïn Sebaâ">
+          <label class="form-label">Inspection Center Specific Notes</label>
+          <input class="form-input" id="diag-note" placeholder="e.g. Verified clear passing parameters at Center Ain Sebaâ">
         </div>
       </div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeModal('diagOverlay')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveDiag()">✓ Save renewal</button>
+      <button class="btn btn-primary" onclick="executeSecurePostAction('logDiagnostic')">✓ Commit New Expiry</button>
     </div>
   </div>
 </div>
 
-<!-- SCHEDULE MODAL -->
 <div class="overlay" id="schedOverlay">
   <div class="modal" style="width:480px">
     <div class="modal-hdr">
-      <div><div class="modal-title">Schedule maintenance</div></div>
+      <div><div class="modal-title">Schedule Future Fleet Action</div></div>
       <button class="modal-close" onclick="closeModal('schedOverlay')">×</button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
+        <div class="form-field"><label class="form-label">Target Vehicle ID</label><input class="form-input" id="sc-id" placeholder="e.g. V-001"></div>
         <div class="form-field">
-          <label class="form-label">Vehicle ID</label>
-          <input class="form-input" id="sc-id" placeholder="e.g. V-042">
-        </div>
-        <div class="form-field">
-          <label class="form-label">Type</label>
+          <label class="form-label">Operation Classification Type</label>
           <select class="form-input" id="sc-type">
             <option>Oil Change</option>
             <option>Tyres</option>
@@ -481,561 +321,63 @@ select.form-input{cursor:pointer}
             <option>Other</option>
           </select>
         </div>
-        <div class="form-field">
-          <label class="form-label">Scheduled date</label>
-          <input class="form-input" type="date" id="sc-date">
-        </div>
-        <div class="form-field">
-          <label class="form-label">Mechanic / Garage</label>
-          <input class="form-input" id="sc-mech" placeholder="Name or garage">
-        </div>
-        <div class="form-field full">
-          <label class="form-label">Notes</label>
-          <input class="form-input" id="sc-note" placeholder="Any relevant details…">
-        </div>
+        <div class="form-field"><label class="form-label">Target Calendar Date</label><input class="form-input" type="date" id="sc-date"></div>
+        <div class="form-field"><label class="form-label">Contracted Mechanic / Workshop Garage</label><input class="form-input" id="sc-mech" placeholder="Garage name or expert name"></div>
+        <div class="form-field full"><label class="form-label">Pre-service Work instructions</label><input class="form-input" id="sc-note" placeholder="Note operational goals…"></div>
       </div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeModal('schedOverlay')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveSchedule()">Save</button>
+      <button class="btn btn-primary" onclick="executeSecurePostAction('logMaintenance')">Log Planned Maintenance</button>
     </div>
   </div>
 </div>
 
-<!-- USER MODAL -->
+<div class="overlay" id="completeTaskOverlay">
+  <div class="modal" style="width:400px">
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-title">Complete Scheduled Maintenance Task</div>
+        <div class="modal-sub" id="completeTaskModalSub"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('completeTaskOverlay')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="completeTaskDynamicFields" class="form-grid" style="grid-template-columns:1fr"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('completeTaskOverlay')">Abort</button>
+      <button class="btn btn-ok" onclick="submitTaskResolutionCompletion()">✓ Resolve Task to Completed</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="userOverlay">
   <div class="modal" style="width:340px">
     <div class="modal-hdr">
-      <div><div class="modal-title">Who are you?</div><div class="modal-sub">Used to tag edits in the activity log</div></div>
+      <div>
+        <div class="modal-title">Identity Credentials & Verification</div>
+        <div class="modal-sub">Enter security parameters to clear operational privileges</div>
+      </div>
     </div>
     <div class="modal-body">
+      <div class="form-field" style="margin-bottom:12px">
+        <label class="form-label">Operator Signature Profile Name</label>
+        <input class="form-input" id="user-name-input" placeholder="Your name…">
+      </div>
       <div class="form-field">
-        <label class="form-label">Your name</label>
-        <input class="form-input" id="user-name-input" placeholder="Enter your name…" onkeydown="if(event.key==='Enter')saveUser()">
+        <label class="form-label">System Modification Password Key</label>
+        <input class="form-input" type="password" id="user-pass-input" placeholder="Enter password to enable mutations…">
       </div>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-primary" onclick="saveUser()">Continue</button>
+      <button class="btn btn-primary" onclick="saveUserSessionCredentials()">Authenticate System Profile</button>
     </div>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script>
-// ================================================================
-// CONFIG — replace with your Apps Script web app URL
-// ================================================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbwf56LwScE6MpM6R791gJ9DTPwveaQUOhqdUkRAg7VqajOlOcJLgiPZmNY0ctHgAhlHRQ/exec';
-// ================================================================
-
-const OIL_INTERVAL = 15000;
-const TODAY = new Date();
-
-let vehicles = [];
-let logs = [];
-let scheduled = [];
-let oilFilter = 'all';
-let fleetFilter = 'all';
-let diagFilter = 'all';
-let activeVehicleId = null;
-let donutChart = null;
-let syncInterval = null;
-let lastModified = null;
-
-// ---- USER ----
-function getUser(){ return localStorage.getItem('dna_user') || ''; }
-function saveUser(){
-  const v = document.getElementById('user-name-input').value.trim();
-  if(!v) return;
-  localStorage.setItem('dna_user', v);
-  document.getElementById('userName').textContent = v;
-  closeModal('userOverlay');
-  toast('Welcome, ' + v + '!', 'ok');
-}
-function promptUser(){
-  document.getElementById('user-name-input').value = getUser();
-  openModal('userOverlay');
-}
-function initUser(){
-  const u = getUser();
-  if(!u){ openModal('userOverlay'); }
-  else { document.getElementById('userName').textContent = u; }
-}
-
-// ---- CLOCK ----
-function updateClock(){
-  const n = new Date();
-  document.getElementById('clock').textContent =
-    n.toLocaleDateString('fr-MA',{weekday:'short',day:'2-digit',month:'short'}) + ' · ' +
-    n.toLocaleTimeString('fr-MA',{hour:'2-digit',minute:'2-digit'});
-}
-setInterval(updateClock, 1000); updateClock();
-
-// ---- SYNC ----
-function setSyncState(state, msg){
-  const dot = document.getElementById('syncDot');
-  const lbl = document.getElementById('syncLbl');
-  dot.className = 'sync-dot' + (state === 'ok' ? '' : state === 'stale' ? ' stale' : ' err');
-  lbl.textContent = msg;
-}
-
-async function fetchData(manual) {
-  if (manual) setSyncState('stale', 'Refreshing…');
-  try {
-    const [vRes, lRes] = await Promise.all([
-      fetch(API_URL + '?action=getVehicles&t=' + Date.now(), {
-        redirect: 'follow',
-        mode: 'cors'
-      }),
-      fetch(API_URL + '?action=getLogs&t=' + Date.now(), {
-        redirect: 'follow',
-        mode: 'cors'
-      })
-    ]);
-    const vData = await vRes.json();
-    const lData = await lRes.json();
-    if(vData.ok){
-      vehicles = vData.data.map(mapVehicle);
-      lastModified = vData.lastModified;
-    }
-    if(lData.ok){ logs = lData.data; }
-    document.getElementById('loadingOverlay').style.display = 'none';
-    setSyncState('ok', 'Synced ' + new Date().toLocaleTimeString('fr-MA',{hour:'2-digit',minute:'2-digit'}));
-    rebuildAll();
-    if(manual) toast('Data refreshed', 'ok');
-  } catch(e){
-    setSyncState('err','Sync failed');
-    document.getElementById('loadingOverlay').style.display = 'none';
-    if(manual) toast('Could not reach Google Sheets. Check API URL.', 'err');
-    console.error(e);
-  }
-}
-
-function mapVehicle(r){
-  return {
-    id:          String(r['Vehicle ID'] || ''),
-    originId:    String(r['Origin ID'] || ''),
-    model:       String(r['Model'] || ''),
-    fn:          String(r['Function'] || ''),
-    chassis:     String(r['Chassis'] || ''),
-    owner:       String(r['Owner'] || ''),
-    currentKm:   r['Mileage'] !== '' ? Number(r['Mileage']) : null,
-    lastCheck:   String(r['Last Check'] || ''),
-    rentMile:    r['Rent Mileage'] !== '' ? Number(r['Rent Mileage']) : null,
-    lastOilKm:   r['Last Oil Change'] !== '' ? Number(r['Last Oil Change']) : null,
-    nextOilKm:   r['Next Oil Change'] !== '' ? Number(r['Next Oil Change']) : null,
-    diagExpiry:  String(r['Annual Diagnostic'] || ''),
-    tyreRef:     String(r['Tyres Reference'] || ''),
-    tyreBrand:   String(r['Tyres Brand'] || ''),
-    fuelCard:    String(r['Fuel Card'] || ''),
-    pin:         String(r['PIN'] || ''),
-    jawaz:       String(r['Jawaz'] || ''),
-    regExpiry:   String(r['Regist Exp'] || ''),
-    rentDate:    String(r['Rent Date'] || ''),
-    handover:    String(r['Handover Date'] || ''),
-  };
-}
-
-// ---- CALCULATIONS ----
-function parseDate(str){
-  if(!str) return null;
-  const p = str.split('/');
-  if(p.length === 3) return new Date(+p[2], +p[1]-1, +p[0]);
-  return null;
-}
-function daysUntil(str){
-  const d = parseDate(str);
-  if(!d) return null;
-  return Math.round((d - TODAY)/(1000*60*60*24));
-}
-function oilRemaining(v){
-  if(v.currentKm === null || v.lastOilKm === null) return null;
-  return (v.lastOilKm + OIL_INTERVAL) - v.currentKm;
-}
-function oilStatus(v){
-  const r = oilRemaining(v);
-  if(r === null) return {label:'No data',cls:'b-gray',cat:'nodata'};
-  if(r <= 0)    return {label:'OVERDUE',cls:'b-danger',cat:'overdue'};
-  if(r <= 2000) return {label:'CRITICAL',cls:'b-danger',cat:'critical'};
-  if(r <= 5000) return {label:'DUE SOON',cls:'b-warn',cat:'soon'};
-  return {label:'OK',cls:'b-ok',cat:'ok'};
-}
-function diagStatus(v){
-  const d = daysUntil(v.diagExpiry);
-  if(d === null) return {label:'No data',cls:'b-gray',cat:'nodata'};
-  if(d < 0)   return {label:'OVERDUE',cls:'b-danger',cat:'overdue'};
-  if(d <= 30) return {label:d+'d left',cls:'b-danger',cat:'month1'};
-  if(d <= 90) return {label:d+'d left',cls:'b-warn',cat:'month3'};
-  return {label:d+'d left',cls:'b-ok',cat:'ok'};
-}
-
-// ---- REBUILD ALL ----
-function rebuildAll(){
-  buildKPI();
-  buildDonut();
-  buildZoneBars();
-  buildOilUrgent();
-  renderOil();
-  renderFleet();
-  renderDiag();
-  renderSchedule();
-  renderLog();
-}
-
-// ---- KPI ----
-function buildKPI(){
-  let overdue=0,critical=0,soon=0,ok=0,diagUrgent=0,total=vehicles.length;
-  vehicles.forEach(v=>{
-    const c=oilStatus(v).cat;
-    if(c==='overdue') overdue++;
-    else if(c==='critical') critical++;
-    else if(c==='soon') soon++;
-    else ok++;
-    const dc=diagStatus(v).cat;
-    if(dc==='overdue'||dc==='month1') diagUrgent++;
-  });
-  document.getElementById('kpiRow').innerHTML=`
-    <div class="kpi" style="--accent:var(--blue)"><div class="kpi-label">Total vehicles</div><div class="kpi-val">${total}</div><div class="kpi-sub">Active fleet</div></div>
-    <div class="kpi" style="--accent:var(--danger)"><div class="kpi-label">Oil overdue</div><div class="kpi-val" style="color:var(--danger)">${overdue}</div><div class="kpi-sub">Past service km</div></div>
-    <div class="kpi" style="--accent:var(--warn)"><div class="kpi-label">Oil critical</div><div class="kpi-val" style="color:var(--warn)">${critical}</div><div class="kpi-sub">&lt;2,000 km left</div></div>
-    <div class="kpi" style="--accent:#92400e"><div class="kpi-label">Oil due soon</div><div class="kpi-val" style="color:#92400e">${soon}</div><div class="kpi-sub">&lt;5,000 km left</div></div>
-    <div class="kpi" style="--accent:var(--ok)"><div class="kpi-label">Oil OK</div><div class="kpi-val" style="color:var(--ok)">${ok}</div><div class="kpi-sub">No action needed</div></div>
-    <div class="kpi" style="--accent:var(--danger)"><div class="kpi-label">Diag urgent</div><div class="kpi-val" style="color:var(--danger)">${diagUrgent}</div><div class="kpi-sub">Overdue or &lt;30d</div></div>`;
-  // Alerts
-  let html='';
-  const overdueList=vehicles.filter(v=>oilStatus(v).cat==='overdue');
-  const diagList=vehicles.filter(v=>['overdue','month1'].includes(diagStatus(v).cat));
-  if(overdueList.length) html+=`<div class="alert alert-danger">⚠️ <div><b>${overdueList.length} vehicle(s) overdue for oil change:</b> ${overdueList.map(v=>'#'+v.id+' ('+v.fn+')').join(', ')}</div></div>`;
-  if(diagList.length)   html+=`<div class="alert alert-warn">📅 <div><b>${diagList.length} vehicle(s) with urgent annual diagnostic:</b> ${diagList.map(v=>'#'+v.id+' (exp: '+v.diagExpiry+')').join(', ')}</div></div>`;
-  document.getElementById('alertBanner').innerHTML=html;
-}
-
-// ---- DONUT ----
-function buildDonut(){
-  const counts={};
-  vehicles.forEach(v=>{ const k=v.model||'Unknown'; counts[k]=(counts[k]||0)+1; });
-  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
-  const colors=['#0047AB','#FFD600','#15803D','#B45309','#6D28D9','#888','#0891B2','#65A30D'];
-  if(donutChart) donutChart.destroy();
-  donutChart=new Chart(document.getElementById('typeChart'),{
-    type:'doughnut',
-    data:{labels:sorted.map(e=>e[0]),datasets:[{data:sorted.map(e=>e[1]),backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},
-    options:{responsive:false,plugins:{legend:{display:false}},cutout:'62%'}
-  });
-  document.getElementById('typeLegend').innerHTML=sorted.map((e,i)=>
-    `<div class="leg-row"><div class="leg-sq" style="background:${colors[i]||'#aaa'}"></div>${e[0]} <b style="color:var(--t1)">(${e[1]})</b></div>`
-  ).join('');
-}
-
-// ---- ZONE BARS ----
-function buildZoneBars(){
-  const counts={};
-  vehicles.forEach(v=>{ const z=(v.fn||'?').split(' ')[0]; counts[z]=(counts[z]||0)+1; });
-  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  const max=sorted[0]?.[1]||1;
-  document.getElementById('zoneBars').innerHTML=sorted.map(([z,n])=>`
-    <div class="bar-row">
-      <div class="bar-label">${z}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${Math.round(n/max*100)}%;background:var(--blue)"></div></div>
-      <div class="bar-val">${n}</div>
-    </div>`).join('');
-}
-
-// ---- TOP 10 OIL ----
-function buildOilUrgent(){
-  const sorted=[...vehicles].filter(v=>v.currentKm!==null).map(v=>({...v,rem:oilRemaining(v)})).sort((a,b)=>a.rem-b.rem).slice(0,10);
-  document.getElementById('oilUrgent').innerHTML=sorted.map(v=>{
-    const s=oilStatus(v);
-    return `<div class="m-item" onclick="openOilModal('${v.id}')">
-      <span class="badge ${s.cls}">${s.label}</span>
-      <div class="m-info">
-        <div class="m-veh">#${v.id} — ${v.model}</div>
-        <div class="m-meta"><span class="pill">${v.fn}</span> · Last oil at ${(v.lastOilKm||0).toLocaleString()} km · Next at ${(v.lastOilKm+OIL_INTERVAL).toLocaleString()} km</div>
-      </div>
-      <div class="m-right">
-        <div class="m-km" style="color:${v.rem<=0?'var(--danger)':v.rem<=2000?'var(--warn)':'var(--t1)'}">${v.rem<=0?'+'+Math.abs(v.rem).toLocaleString()+' km overdue':v.rem.toLocaleString()+' km left'}</div>
-        <div class="m-sub">Current: ${v.currentKm.toLocaleString()} km</div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ---- OIL TABLE ----
-function filterOil(f,el){ oilFilter=f; document.querySelectorAll('#oilFilters .fbtn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); renderOil(); }
-function renderOil(){
-  const q=(document.getElementById('oilSearch').value||'').toLowerCase();
-  const rows=vehicles.filter(v=>{
-    if(oilFilter!=='all'&&oilStatus(v).cat!==oilFilter) return false;
-    if(q&&!`${v.id} ${v.originId} ${v.model} ${v.fn}`.toLowerCase().includes(q)) return false;
-    return true;
-  }).sort((a,b)=>(oilRemaining(a)??9e9)-(oilRemaining(b)??9e9));
-  document.getElementById('oilCount').textContent=rows.length+' vehicle(s)';
-  document.getElementById('oilTbody').innerHTML=rows.map(v=>{
-    const s=oilStatus(v); const rem=oilRemaining(v);
-    const remColor=rem!==null&&rem<=0?'var(--danger)':rem!==null&&rem<=2000?'var(--warn)':'var(--t1)';
-    return `<tr>
-      <td><strong>${v.id}</strong><br><span style="font-size:10px;color:var(--t3)">${v.originId}</span></td>
-      <td>${v.model}</td>
-      <td><span class="pill">${v.fn}</span></td>
-      <td class="mono">${v.currentKm!==null?v.currentKm.toLocaleString()+' km':'—'}</td>
-      <td class="mono">${v.lastOilKm!==null?v.lastOilKm.toLocaleString()+' km':'—'}</td>
-      <td class="mono">${v.lastOilKm!==null?(v.lastOilKm+OIL_INTERVAL).toLocaleString()+' km':'—'}</td>
-      <td class="mono" style="font-weight:600;color:${remColor}">${rem!==null?(rem<=0?'⚠ +'+Math.abs(rem).toLocaleString():rem.toLocaleString()+' km'):'—'}</td>
-      <td><span class="badge ${s.cls}">${s.label}</span></td>
-      <td><button class="act-btn oil" onclick="openOilModal('${v.id}')">Log oil change</button></td>
-    </tr>`;
-  }).join('');
-}
-
-// ---- FLEET TABLE ----
-function filterFleet(f,el){ fleetFilter=f; document.querySelectorAll('#fleetFilters .fbtn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); renderFleet(); }
-function renderFleet(){
-  const q=(document.getElementById('fleetSearch').value||'').toLowerCase();
-  const rows=vehicles.filter(v=>{
-    if(fleetFilter!=='all'&&!v.fn.includes(fleetFilter)) return false;
-    if(q&&!`${v.id} ${v.originId} ${v.model} ${v.fn} ${v.chassis}`.toLowerCase().includes(q)) return false;
-    return true;
-  });
-  document.getElementById('fleetCount').textContent=rows.length+' vehicle(s)';
-  const os=v=>oilStatus(v); const ds=v=>diagStatus(v);
-  document.getElementById('fleetTbody').innerHTML=rows.map(v=>`<tr class="clickable" onclick="openEditModal('${v.id}')">
-    <td><strong>${v.id}</strong></td>
-    <td style="font-size:11px;color:var(--t3)">${v.originId}</td>
-    <td style="white-space:nowrap">${v.model}</td>
-    <td><span class="pill">${v.fn}</span></td>
-    <td class="mono" style="font-size:11px">${v.chassis}</td>
-    <td class="mono">${v.currentKm!==null?v.currentKm.toLocaleString()+' km':'—'}</td>
-    <td style="font-size:11px">${v.lastCheck}</td>
-    <td class="mono">${v.fuelCard}</td>
-    <td class="mono" style="font-weight:600">${v.pin}</td>
-    <td class="mono">${v.jawaz}</td>
-    <td style="font-size:11px">${v.tyreRef}<br><span style="color:var(--t3)">${v.tyreBrand}</span></td>
-    <td><span class="badge ${os(v).cls}">${os(v).label}</span></td>
-    <td><span class="badge ${ds(v).cls}">${v.diagExpiry||'—'}</span></td>
-    <td onclick="event.stopPropagation()" style="white-space:nowrap">
-      <button class="act-btn oil" onclick="openOilModal('${v.id}')">Oil</button>
-      <button class="act-btn diag" onclick="openDiagModal('${v.id}')">Diag</button>
-    </td>
-  </tr>`).join('');
-}
-
-// ---- DIAG TABLE ----
-function filterDiag(f,el){ diagFilter=f; document.querySelectorAll('#diagFilters .fbtn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); renderDiag(); }
-function renderDiag(){
-  const rows=vehicles.filter(v=>{
-    if(diagFilter!=='all'&&diagStatus(v).cat!==diagFilter) return false;
-    return true;
-  }).sort((a,b)=>(daysUntil(a.diagExpiry)??9999)-(daysUntil(b.diagExpiry)??9999));
-  document.getElementById('diagTbody').innerHTML=rows.map(v=>{
-    const s=diagStatus(v); const d=daysUntil(v.diagExpiry);
-    const dColor=d!==null&&d<0?'var(--danger)':d!==null&&d<=30?'var(--warn)':'var(--t1)';
-    return `<tr>
-      <td><strong>${v.id}</strong><br><span style="font-size:10px;color:var(--t3)">${v.originId}</span></td>
-      <td>${v.model}</td>
-      <td><span class="pill">${v.fn}</span></td>
-      <td style="font-weight:500">${v.diagExpiry||'—'}</td>
-      <td style="font-weight:600;color:${dColor}">${d!==null?(d<0?'⚠ '+Math.abs(d)+'d overdue':d+'d'):'—'}</td>
-      <td><span class="badge ${s.cls}">${s.label}</span></td>
-      <td><button class="act-btn diag" onclick="openDiagModal('${v.id}')">Renew</button></td>
-    </tr>`;
-  }).join('');
-}
-
-// ---- SCHEDULE ----
-function renderSchedule(){
-  const items=logs.filter(l=>l['Scheduled date']&&l['Scheduled date']!=='').sort((a,b)=>a['Scheduled date'].localeCompare(b['Scheduled date']));
-  document.getElementById('schedCount').textContent=items.length+' scheduled';
-  if(!items.length){ document.getElementById('schedList').innerHTML='<div style="color:var(--t3);font-size:12px;padding:12px">No scheduled maintenance entries yet.</div>'; return; }
-  document.getElementById('schedList').innerHTML=items.map(l=>{
-    const type=l['Type']||'Maintenance';
-    const colors={Oil:'#15803D','Annual Diagnostic':'#1D4ED8',Tyres:'#B45309','Brake Service':'#C0392B'};
-    const dot=colors[type]||'#888';
-    return `<div class="sched-card">
-      <div class="sched-dot" style="background:${dot}"></div>
-      <div style="flex:1">
-        <div style="font-size:12px;font-weight:600">#${l['Vehicle ID']} — ${type}</div>
-        <div style="font-size:11px;color:var(--t2);margin-top:2px">${l['Scheduled date']} · ${l['Mechanic']||'No mechanic assigned'}</div>
-        ${l['Notes']?`<div style="font-size:11px;color:var(--t3);margin-top:2px">${l['Notes']}</div>`:''}
-      </div>
-      <div style="font-size:11px;color:var(--t3)">${l['User']||''}</div>
-    </div>`;
-  }).join('');
-}
-
-// ---- LOG TABLE ----
-function renderLog(){
-  const q=(document.getElementById('logSearch').value||'').toLowerCase();
-  const rows=[...logs].reverse().filter(l=>{
-    if(!q) return true;
-    return JSON.stringify(l).toLowerCase().includes(q);
-  });
-  document.getElementById('logCount').textContent=rows.length+' entries';
-  document.getElementById('logTbody').innerHTML=rows.map(l=>`<tr>
-    <td style="font-size:11px;color:var(--t3);white-space:nowrap">${l['Timestamp']||''}</td>
-    <td><strong>${l['Vehicle ID']||''}</strong></td>
-    <td class="log-row-type">${l['Type']||''}</td>
-    <td class="mono">${l['KM at service']||''}</td>
-    <td style="font-size:11px">${l['Scheduled date']||''}</td>
-    <td style="font-size:11px">${l['Mechanic']||''}</td>
-    <td><span class="badge b-info">${l['User']||'Unknown'}</span></td>
-    <td style="font-size:11px;color:var(--t2)">${l['Notes']||''}</td>
-  </tr>`).join('');
-}
-
-// ---- MODALS ----
-function openModal(id){ document.getElementById(id).classList.add('open'); }
-function closeModal(id){ document.getElementById(id).classList.remove('open'); activeVehicleId=null; }
-
-function getV(id){ return vehicles.find(v=>v.id===id); }
-
-function openEditModal(id){
-  const v=getV(id); if(!v) return;
-  activeVehicleId=id;
-  document.getElementById('editModalTitle').textContent='Edit #'+v.id+' — '+v.model;
-  document.getElementById('editModalSub').textContent=v.fn;
-  document.getElementById('ef-id').value=v.id;
-  document.getElementById('ef-originid').value=v.originId;
-  document.getElementById('ef-model').value=v.model;
-  document.getElementById('ef-fn').value=v.fn;
-  document.getElementById('ef-chassis').value=v.chassis;
-  document.getElementById('ef-owner').value=v.owner;
-  document.getElementById('ef-km').value=v.currentKm||'';
-  document.getElementById('ef-lastoil').value=v.lastOilKm||'';
-  document.getElementById('ef-diag').value=v.diagExpiry||'';
-  document.getElementById('ef-regexp').value=v.regExpiry||'';
-  document.getElementById('ef-fuelcard').value=v.fuelCard||'';
-  document.getElementById('ef-pin').value=v.pin||'';
-  document.getElementById('ef-jawaz').value=v.jawaz||'';
-  document.getElementById('ef-tyreref').value=v.tyreRef||'';
-  document.getElementById('ef-tyrebrand').value=v.tyreBrand||'';
-  document.getElementById('ef-rentmile').value=v.rentMile||'';
-  document.getElementById('ef-notes').value='';
-  openModal('editOverlay');
-}
-
-async function saveEdit(){
-  const id=document.getElementById('ef-id').value;
-  const fields={
-    'Origin ID': document.getElementById('ef-originid').value,
-    'Model':     document.getElementById('ef-model').value,
-    'Function':  document.getElementById('ef-fn').value,
-    'Chassis':   document.getElementById('ef-chassis').value,
-    'Owner':     document.getElementById('ef-owner').value,
-    'Mileage':   document.getElementById('ef-km').value,
-    'Last Oil Change': document.getElementById('ef-lastoil').value,
-    'Annual Diagnostic': document.getElementById('ef-diag').value,
-    'Regist Exp':document.getElementById('ef-regexp').value,
-    'Fuel Card': document.getElementById('ef-fuelcard').value,
-    'PIN':       document.getElementById('ef-pin').value,
-    'Jawaz':     document.getElementById('ef-jawaz').value,
-    'Tyres Reference': document.getElementById('ef-tyreref').value,
-    'Tyres Brand': document.getElementById('ef-tyrebrand').value,
-    'Rent Mileage':document.getElementById('ef-rentmile').value,
-  };
-  // Remove unchanged fields
-  const v=getV(id);
-  await postAction({action:'updateVehicle', vehicleId:id, fields, user:getUser(), note:document.getElementById('ef-notes').value});
-  closeModal('editOverlay');
-  await fetchData(false);
-  toast('Vehicle #'+id+' updated', 'ok');
-}
-
-function openOilModal(id){
-  const v=getV(id); if(!v) return;
-  activeVehicleId=id;
-  document.getElementById('oilModalSub').textContent='#'+v.id+' — '+v.model+' · '+v.fn;
-  document.getElementById('oil-km').value=v.currentKm||'';
-  document.getElementById('oil-hint').textContent=v.lastOilKm?'Last oil change at '+v.lastOilKm.toLocaleString()+' km. Next will be set at '+(v.lastOilKm+OIL_INTERVAL).toLocaleString()+' km.':'No previous oil change recorded.';
-  document.getElementById('oil-note').value='';
-  openModal('oilOverlay');
-}
-async function saveOilChange(){
-  const km=Number(document.getElementById('oil-km').value);
-  if(!km||km<0){ toast('Enter a valid mileage','err'); return; }
-  await postAction({action:'logOilChange', vehicleId:activeVehicleId, currentKm:km, user:getUser(), note:document.getElementById('oil-note').value});
-  closeModal('oilOverlay');
-  await fetchData(false);
-  toast('Oil change logged for #'+activeVehicleId,'ok');
-}
-
-function openDiagModal(id){
-  const v=getV(id); if(!v) return;
-  activeVehicleId=id;
-  document.getElementById('diagModalSub').textContent='#'+v.id+' — '+v.model+' · '+v.fn;
-  document.getElementById('diag-date').value='';
-  document.getElementById('diag-note').value='';
-  openModal('diagOverlay');
-}
-async function saveDiag(){
-  const dt=document.getElementById('diag-date').value.trim();
-  if(!dt){ toast('Enter a valid date (DD/MM/YYYY)','err'); return; }
-  await postAction({action:'logDiagnostic', vehicleId:activeVehicleId, newExpiryDate:dt, user:getUser(), note:document.getElementById('diag-note').value});
-  closeModal('diagOverlay');
-  await fetchData(false);
-  toast('Diagnostic renewed for #'+activeVehicleId,'ok');
-}
-
-function openScheduleModal(){ openModal('schedOverlay'); }
-async function saveSchedule(){
-  const id=document.getElementById('sc-id').value.trim();
-  if(!id){ toast('Enter a vehicle ID','err'); return; }
-  const rawDate=document.getElementById('sc-date').value;
-  const fmtDate=rawDate?rawDate.split('-').reverse().join('/'):'';
-  await postAction({
-    action:'logMaintenance',
-    vehicleId:id,
-    type:document.getElementById('sc-type').value,
-    scheduledDate:fmtDate,
-    mechanic:document.getElementById('sc-mech').value,
-    note:document.getElementById('sc-note').value,
-    user:getUser()
-  });
-  closeModal('schedOverlay');
-  await fetchData(false);
-  toast('Maintenance scheduled for #'+id,'ok');
-}
-
-// ---- POST ----
-async function postAction(payload) {
-  try {
-    const action = payload.action;
-    const data = encodeURIComponent(JSON.stringify(payload));
-    const res = await fetch(
-      API_URL + '?action=' + action + '&payload=' + data + '&t=' + Date.now(),
-      { redirect: 'follow' }
-    );
-    const text = await res.text();
-    const json = JSON.parse(text);
-    if (!json.ok) toast('Error: ' + (json.error || 'Unknown'), 'err');
-    return json;
-  } catch(e) {
-    toast('Network error. Check connection.', 'err');
-    console.error(e);
-  }
-}
-
-// ---- TOAST ----
-function toast(msg, type=''){
-  const el=document.createElement('div');
-  el.className='toast'+(type?' '+type:'');
-  el.textContent=msg;
-  document.getElementById('toastWrap').appendChild(el);
-  requestAnimationFrame(()=>{ el.classList.add('show'); });
-  setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(),250); },3000);
-}
-
-// ---- TABS ----
-function showPage(name,el){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
-  el.classList.add('active');
-}
-
-// ---- INIT ----
-initUser();
-fetchData(false);
-syncInterval=setInterval(()=>fetchData(false), 60000);
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
