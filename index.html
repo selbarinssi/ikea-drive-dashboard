@@ -223,11 +223,10 @@ select.form-input{cursor:pointer}
 <!-- TABS -->
 <div class="tabs">
   <div class="tab active" onclick="showPage('overview',this)">📊 Overview</div>
-  <div class="tab" onclick="showPage('oil',this)">🛢 Oil Changes</div>
   <div class="tab" onclick="showPage('fleet',this)">🚐 Fleet</div>
-  <div class="tab" onclick="showPage('diag',this)">📅 Annual Diagnostic</div>
   <div class="tab" onclick="showPage('schedule',this)">🗓 Schedule</div>
-  <div class="tab" onclick="showPage('log',this)">📋 Activity Log</div>
+  <div class="tab" onclick="showPage('oil',this)">🛢 Oil Changes</div>
+  <div class="tab" onclick="showPage('diag',this)">📅 Annual Diagnostic</div>
 </div>
 
 <div class="content">
@@ -291,6 +290,7 @@ select.form-input{cursor:pointer}
     <button class="fbtn" onclick="filterFleet('MKS',this)">Meknès</button>
     <button class="fbtn" onclick="filterFleet('TRS',this)">Transport</button>
     <button class="fbtn" onclick="filterFleet('CAB',this)">Tanger/CAB</button>
+    <button class="fbtn" onclick="filterFleet('DOWN',this)">🔴 Down/Garage</button>
   </div>
   <div class="row-tools">
     <button class="btn btn-primary" onclick="openAddModal()">+ Add vehicle</button>
@@ -330,31 +330,32 @@ select.form-input{cursor:pointer}
   </div>
 </div>
 
-<!-- SCHEDULE -->
+<!-- SCHEDULE / PLANNED INTERVENTIONS -->
 <div class="page" id="page-schedule">
-  <div class="row-tools">
-    <button class="btn btn-primary" onclick="openScheduleModal()">+ Schedule maintenance</button>
-    <span class="count-lbl" id="schedCount"></span>
+  <div class="filters" id="schedFilters">
+    <button class="fbtn active" onclick="filterSched('all',this)">All</button>
+    <button class="fbtn" onclick="filterSched('Oil Change',this)">🛢 Oil Change</button>
+    <button class="fbtn" onclick="filterSched('Annual Diagnostic',this)">📅 Diagnostic</button>
+    <button class="fbtn" onclick="filterSched('Tyres',this)">🔧 Tyres</button>
+    <button class="fbtn" onclick="filterSched('Brake Service',this)">🛑 Brakes</button>
+    <button class="fbtn" onclick="filterSched('General Inspection',this)">🔍 Inspection</button>
+    <button class="fbtn" onclick="filterSched('Other',this)">📌 Other</button>
   </div>
-  <div class="sched-list" id="schedList"></div>
-</div>
-
-<!-- ACTIVITY LOG -->
-<div class="page" id="page-log">
   <div class="row-tools">
-    <input class="srch" type="text" id="logSearch" placeholder="Search vehicle, user, action…" oninput="renderLog()">
-    <span class="count-lbl" id="logCount"></span>
+    <button class="btn btn-primary" onclick="openScheduleModal()">+ Plan intervention</button>
+    <input class="srch" type="text" id="schedSearch" placeholder="Search vehicle, mechanic, notes…" oninput="renderSchedule()">
+    <span class="count-lbl" id="schedCount"></span>
   </div>
   <div class="tbl-wrap">
     <table class="tbl">
       <thead><tr>
-        <th>Time</th><th>Vehicle</th><th>Type</th><th>KM</th>
-        <th>Scheduled</th><th>Mechanic</th><th>User</th><th>Notes</th>
+        <th>Date</th><th>Vehicle</th><th>Type</th><th>Mechanic / Garage</th><th>Scheduled date</th><th>User</th><th>Notes</th>
       </tr></thead>
-      <tbody id="logTbody"></tbody>
+      <tbody id="schedTbody"></tbody>
     </table>
   </div>
 </div>
+
 
 </div><!-- end content -->
 
@@ -718,7 +719,6 @@ function rebuildAll(){
   renderFleet();
   renderDiag();
   renderSchedule();
-  renderLog();
 }
 
 // ---- KPI ----
@@ -744,8 +744,8 @@ function buildKPI(){
   let html='';
   const overdueList=vehicles.filter(v=>oilStatus(v).cat==='overdue');
   const diagList=vehicles.filter(v=>['overdue','month1'].includes(diagStatus(v).cat));
-  if(overdueList.length) html+=`<div class="alert alert-danger">⚠️ <div><b>${overdueList.length} vehicle(s) overdue for oil change:</b> ${overdueList.map(v=>'#'+v.id+' ('+v.fn+')').join(', ')}</div></div>`;
-  if(diagList.length)   html+=`<div class="alert alert-warn">📅 <div><b>${diagList.length} vehicle(s) with urgent annual diagnostic:</b> ${diagList.map(v=>'#'+v.id+' (exp: '+v.diagExpiry+')').join(', ')}</div></div>`;
+  if(overdueList.length) html+=`<div class="alert alert-danger">⚠️ <div><b>${overdueList.length} vehicle(s) overdue for oil change:</b> ${overdueList.map(v=>v.id+' ('+v.fn+')').join(', ')}</div></div>`;
+  if(diagList.length)   html+=`<div class="alert alert-warn">📅 <div><b>${diagList.length} vehicle(s) with urgent annual diagnostic:</b> ${diagList.map(v=>v.id+' (exp: '+v.diagExpiry+')').join(', ')}</div></div>`;
   document.getElementById('alertBanner').innerHTML=html;
 }
 
@@ -788,7 +788,7 @@ function buildOilUrgent(){
     return `<div class="m-item" onclick="openOilModal('${v.id}')">
       <span class="badge ${s.cls}">${s.label}</span>
       <div class="m-info">
-        <div class="m-veh">#${v.id} — ${v.model}</div>
+        <div class="m-veh">${v.id} — ${v.model}</div>
         <div class="m-meta"><span class="pill">${v.fn}</span> · Last oil at ${(v.lastOilKm||0).toLocaleString()} km · Next at ${(v.lastOilKm+OIL_INTERVAL).toLocaleString()} km</div>
       </div>
       <div class="m-right">
@@ -881,45 +881,47 @@ function renderDiag(){
 }
 
 // ---- SCHEDULE ----
+// ---- SCHEDULE FILTER ----
+let schedFilter = 'all';
+function filterSched(f, el){
+  schedFilter = f;
+  document.querySelectorAll('#schedFilters .fbtn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderSchedule();
+}
+
+// ---- SCHEDULE TABLE ----
 function renderSchedule(){
-  const items=logs.filter(l=>l['Scheduled date']&&l['Scheduled date']!=='').sort((a,b)=>a['Scheduled date'].localeCompare(b['Scheduled date']));
-  document.getElementById('schedCount').textContent=items.length+' scheduled';
-  if(!items.length){ document.getElementById('schedList').innerHTML='<div style="color:var(--t3);font-size:12px;padding:12px">No scheduled maintenance entries yet.</div>'; return; }
-  document.getElementById('schedList').innerHTML=items.map(l=>{
-    const type=l['Type']||'Maintenance';
-    const colors={Oil:'#15803D','Annual Diagnostic':'#1D4ED8',Tyres:'#B45309','Brake Service':'#C0392B'};
-    const dot=colors[type]||'#888';
-    return `<div class="sched-card">
-      <div class="sched-dot" style="background:${dot}"></div>
-      <div style="flex:1">
-        <div style="font-size:12px;font-weight:600">#${l['Vehicle ID']} — ${type}</div>
-        <div style="font-size:11px;color:var(--t2);margin-top:2px">${l['Scheduled date']} · ${l['Mechanic']||'No mechanic assigned'}</div>
-        ${l['Notes']?`<div style="font-size:11px;color:var(--t3);margin-top:2px">${l['Notes']}</div>`:''}
-      </div>
-      <div style="font-size:11px;color:var(--t3)">${l['User']||''}</div>
-    </div>`;
+  const q = (document.getElementById('schedSearch').value || '').toLowerCase();
+  const rows = [...logs].reverse().filter(l => {
+    if(schedFilter !== 'all' && l['Type'] !== schedFilter) return false;
+    if(q && !`${l['Vehicle ID']} ${l['Mechanic']} ${l['Notes']} ${l['Type']}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  document.getElementById('schedCount').textContent = rows.length + ' entries';
+  document.getElementById('schedTbody').innerHTML = rows.map(l => {
+    const type = l['Type'] || '—';
+    const typeColors = {
+      'Oil Change':         'b-ok',
+      'Annual Diagnostic':  'b-info',
+      'Tyres':              'b-warn',
+      'Brake Service':      'b-danger',
+      'General Inspection': 'b-gray',
+      'Other':              'b-gray'
+    };
+    const badge = typeColors[type] || 'b-gray';
+    return `<tr>
+      <td style="font-size:11px;color:var(--t3);white-space:nowrap">${l['Timestamp'] || '—'}</td>
+      <td><strong>${l['Vehicle ID'] || '—'}</strong></td>
+      <td><span class="badge ${badge}">${type}</span></td>
+      <td style="font-size:11px">${l['Mechanic'] || '—'}</td>
+      <td style="font-size:11px;font-weight:500">${l['Scheduled date'] || '—'}</td>
+      <td><span class="badge b-info">${l['User'] || 'Unknown'}</span></td>
+      <td style="font-size:11px;color:var(--t2)">${l['Notes'] || ''}</td>
+    </tr>`;
   }).join('');
 }
 
-// ---- LOG TABLE ----
-function renderLog(){
-  const q=(document.getElementById('logSearch').value||'').toLowerCase();
-  const rows=[...logs].reverse().filter(l=>{
-    if(!q) return true;
-    return JSON.stringify(l).toLowerCase().includes(q);
-  });
-  document.getElementById('logCount').textContent=rows.length+' entries';
-  document.getElementById('logTbody').innerHTML=rows.map(l=>`<tr>
-    <td style="font-size:11px;color:var(--t3);white-space:nowrap">${l['Timestamp']||''}</td>
-    <td><strong>${l['Vehicle ID']||''}</strong></td>
-    <td class="log-row-type">${l['Type']||''}</td>
-    <td class="mono">${l['KM at service']||''}</td>
-    <td style="font-size:11px">${l['Scheduled date']||''}</td>
-    <td style="font-size:11px">${l['Mechanic']||''}</td>
-    <td><span class="badge b-info">${l['User']||'Unknown'}</span></td>
-    <td style="font-size:11px;color:var(--t2)">${l['Notes']||''}</td>
-  </tr>`).join('');
-}
 
 // ---- MODALS ----
 function openModal(id){ document.getElementById(id).classList.add('open'); }
@@ -930,7 +932,7 @@ function getV(id){ return vehicles.find(v=>v.id===id); }
 function openEditModal(id){
   const v=getV(id); if(!v) return;
   activeVehicleId=id;
-  document.getElementById('editModalTitle').textContent='Edit #'+v.id+' — '+v.model;
+  document.getElementById('editModalTitle').textContent='Edit '+v.id+' — '+v.model;
   document.getElementById('editModalSub').textContent=v.fn;
   document.getElementById('ef-id').value=v.id;
   document.getElementById('ef-originid').value=v.originId;
@@ -976,7 +978,7 @@ async function saveEdit(){
   await postAction({action:'updateVehicle', vehicleId:id, fields, user:getUser(), note:document.getElementById('ef-notes').value});
   closeModal('editOverlay');
   await fetchData(false);
-  toast('Vehicle #'+id+' updated', 'ok');
+  toast('Vehicle '+id+' updated', 'ok');
 }
 function openAddModal(){
   // Clear all fields
@@ -1026,12 +1028,12 @@ async function saveAdd(){
   await postAction({ action: 'addVehicle', fields, user: getUser(), note: document.getElementById('af-notes').value });
   closeModal('addOverlay');
   await fetchData(false);
-  toast('Vehicle #'+id+' added', 'ok');
+  toast('Vehicle '+id+' added', 'ok');
 }
 function openOilModal(id){
   const v=getV(id); if(!v) return;
   activeVehicleId=id;
-  document.getElementById('oilModalSub').textContent='#'+v.id+' — '+v.model+' · '+v.fn;
+  document.getElementById('oilModalSub').textContent=v.id+' — '+v.model+' · '+v.fn;
   document.getElementById('oil-km').value=v.currentKm||'';
   document.getElementById('oil-hint').textContent=v.lastOilKm?'Last oil change at '+v.lastOilKm.toLocaleString()+' km. Next will be set at '+(v.lastOilKm+OIL_INTERVAL).toLocaleString()+' km.':'No previous oil change recorded.';
   document.getElementById('oil-note').value='';
@@ -1049,7 +1051,7 @@ async function saveOilChange(){
 function openDiagModal(id){
   const v=getV(id); if(!v) return;
   activeVehicleId=id;
-  document.getElementById('diagModalSub').textContent='#'+v.id+' — '+v.model+' · '+v.fn;
+  document.getElementById('diagModalSub').textContent=v.id+' — '+v.model+' · '+v.fn;
   document.getElementById('diag-date').value='';
   document.getElementById('diag-note').value='';
   openModal('diagOverlay');
