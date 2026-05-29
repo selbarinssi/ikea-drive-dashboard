@@ -349,7 +349,7 @@ select.form-input{cursor:pointer}
   <div class="tbl-wrap">
     <table class="tbl">
       <thead><tr>
-        <th>Date</th><th>Vehicle</th><th>Type</th><th>Mechanic / Garage</th><th>Scheduled date</th><th>User</th><th>Notes</th>
+        <th>Date</th><th>Vehicle</th><th>Type</th><th>KM</th><th>User</th><th>Notes</th><th>Status</th>
       </tr></thead>
       <tbody id="schedTbody"></tbody>
     </table>
@@ -581,6 +581,7 @@ let activeVehicleId = null;
 let donutChart = null;
 let syncInterval = null;
 let lastModified = null;
+let maintenance = [];
 
 // ---- USER ----
 function getUser(){ return localStorage.getItem('dna_user') || ''; }
@@ -622,23 +623,17 @@ function setSyncState(state, msg){
 async function fetchData(manual) {
   if (manual) setSyncState('stale', 'Refreshing…');
   try {
-    const [vRes, lRes] = await Promise.all([
-      fetch(API_URL + '?action=getVehicles&t=' + Date.now(), {
-        redirect: 'follow',
-        mode: 'cors'
-      }),
-      fetch(API_URL + '?action=getLogs&t=' + Date.now(), {
-        redirect: 'follow',
-        mode: 'cors'
-      })
+    const [vRes, lRes, mRes] = await Promise.all([
+      fetch(API_URL + '?action=getVehicles&t='        + Date.now(), { redirect:'follow', mode:'cors' }),
+      fetch(API_URL + '?action=getLogs&t='            + Date.now(), { redirect:'follow', mode:'cors' }),
+      fetch(API_URL + '?action=getMaintenanceLog&t='  + Date.now(), { redirect:'follow', mode:'cors' })
     ]);
     const vData = await vRes.json();
     const lData = await lRes.json();
-    if(vData.ok){
-      vehicles = vData.data.map(mapVehicle);
-      lastModified = vData.lastModified;
-    }
+    const mData = await mRes.json();
+    if(vData.ok){ vehicles = vData.data.map(mapVehicle); lastModified = vData.lastModified; }
     if(lData.ok){ logs = lData.data; }
+    if(mData.ok){ maintenance = mData.data; }
     document.getElementById('loadingOverlay').style.display = 'none';
     setSyncState('ok', 'Synced ' + new Date().toLocaleTimeString('fr-MA',{hour:'2-digit',minute:'2-digit'}));
     rebuildAll();
@@ -893,33 +888,46 @@ function filterSched(f, el){
 // ---- SCHEDULE TABLE ----
 function renderSchedule(){
   const q = (document.getElementById('schedSearch').value || '').toLowerCase();
-  const rows = [...logs].reverse().filter(l => {
+  const rows = [...maintenance].reverse().filter(l => {
     if(schedFilter !== 'all' && l['Type'] !== schedFilter) return false;
-    if(q && !`${l['Vehicle ID']} ${l['Mechanic']} ${l['Notes']} ${l['Type']}`.toLowerCase().includes(q)) return false;
+    if(q && !`${l['Vehicle ID']} ${l['User']} ${l['Notes']} ${l['Type']}`.toLowerCase().includes(q)) return false;
     return true;
   });
   document.getElementById('schedCount').textContent = rows.length + ' entries';
+  const typeColors = {
+    'Oil Change':         'b-ok',
+    'Annual Diagnostic':  'b-info',
+    'Tyres':              'b-warn',
+    'Brake Service':      'b-danger',
+    'General Inspection': 'b-gray',
+    'Other':              'b-gray'
+  };
   document.getElementById('schedTbody').innerHTML = rows.map(l => {
-    const type = l['Type'] || '—';
-    const typeColors = {
-      'Oil Change':         'b-ok',
-      'Annual Diagnostic':  'b-info',
-      'Tyres':              'b-warn',
-      'Brake Service':      'b-danger',
-      'General Inspection': 'b-gray',
-      'Other':              'b-gray'
-    };
-    const badge = typeColors[type] || 'b-gray';
-    return `<tr>
+    const type   = l['Type'] || '—';
+    const badge  = typeColors[type] || 'b-gray';
+    const status = l['Status'] || 'Pending';
+    const isDone = status === 'Done';
+    return `<tr style="${isDone ? 'opacity:0.6' : ''}">
       <td style="font-size:11px;color:var(--t3);white-space:nowrap">${l['Timestamp'] || '—'}</td>
       <td><strong>${l['Vehicle ID'] || '—'}</strong></td>
       <td><span class="badge ${badge}">${type}</span></td>
-      <td style="font-size:11px">${l['Mechanic'] || '—'}</td>
-      <td style="font-size:11px;font-weight:500">${l['Scheduled date'] || '—'}</td>
-      <td><span class="badge b-info">${l['User'] || 'Unknown'}</span></td>
+      <td class="mono" style="font-size:11px">${l['KM at service'] || '—'}</td>
+      <td style="font-size:11px">${l['User'] || '—'}</td>
       <td style="font-size:11px;color:var(--t2)">${l['Notes'] || ''}</td>
+      <td>
+        ${isDone
+          ? '<span class="badge b-ok">✓ Done</span>'
+          : `<button class="act-btn oil" onclick="markDone(${l._row})">Mark done</button>`
+        }
+      </td>
     </tr>`;
   }).join('');
+}
+
+async function markDone(row){
+  await postAction({ action: 'markMaintenanceDone', row, user: getUser() });
+  await fetchData(false);
+  toast('Marked as done', 'ok');
 }
 
 
