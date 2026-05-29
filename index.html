@@ -293,6 +293,7 @@ select.form-input{cursor:pointer}
     <button class="fbtn" onclick="filterFleet('CAB',this)">Tanger/CAB</button>
   </div>
   <div class="row-tools">
+    <button class="btn btn-primary" onclick="openAddModal()">+ Add vehicle</button>
     <input class="srch" type="text" id="fleetSearch" placeholder="Search ID, model, chassis…" oninput="renderFleet()">
     <span class="count-lbl" id="fleetCount"></span>
   </div>
@@ -519,7 +520,45 @@ select.form-input{cursor:pointer}
     </div>
   </div>
 </div>
-
+<!-- ADD VEHICLE MODAL -->
+<div class="overlay" id="addOverlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-title">Add new vehicle</div>
+        <div class="modal-sub">Vehicle will be appended to the Vehicles sheet</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('addOverlay')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field"><label class="form-label">Vehicle ID *</label><input class="form-input" id="af-id" placeholder="e.g. V-043"></div>
+        <div class="form-field"><label class="form-label">Origin ID</label><input class="form-input" id="af-originid" placeholder="e.g. IKEA-043"></div>
+        <div class="form-field"><label class="form-label">Model</label><input class="form-input" id="af-model" placeholder="e.g. Renault Master"></div>
+        <div class="form-field"><label class="form-label">Function / Zone</label><input class="form-input" id="af-fn" placeholder="e.g. CAS Livraison"></div>
+        <div class="form-field"><label class="form-label">Chassis</label><input class="form-input" id="af-chassis"></div>
+        <div class="form-field"><label class="form-label">Owner</label><input class="form-input" id="af-owner"></div>
+        <div class="form-field"><label class="form-label">Current mileage</label><input class="form-input" type="number" id="af-km" placeholder="km"></div>
+        <div class="form-field"><label class="form-label">Last oil change km</label><input class="form-input" type="number" id="af-lastoil" placeholder="km"></div>
+        <div class="form-field"><label class="form-label">Annual diagnostic expiry</label><input class="form-input" id="af-diag" placeholder="DD/MM/YYYY"></div>
+        <div class="form-field"><label class="form-label">Reg. expiry</label><input class="form-input" id="af-regexp" placeholder="DD/MM/YYYY"></div>
+        <div class="form-field"><label class="form-label">Rent date</label><input class="form-input" id="af-rentdate" placeholder="DD/MM/YYYY"></div>
+        <div class="form-field"><label class="form-label">Handover date</label><input class="form-input" id="af-handover" placeholder="DD/MM/YYYY"></div>
+        <div class="form-field"><label class="form-label">Fuel card</label><input class="form-input" id="af-fuelcard"></div>
+        <div class="form-field"><label class="form-label">PIN</label><input class="form-input" id="af-pin"></div>
+        <div class="form-field"><label class="form-label">Jawaz</label><input class="form-input" id="af-jawaz"></div>
+        <div class="form-field"><label class="form-label">Rent mileage</label><input class="form-input" type="number" id="af-rentmile" placeholder="km"></div>
+        <div class="form-field"><label class="form-label">Tyres ref.</label><input class="form-input" id="af-tyreref"></div>
+        <div class="form-field"><label class="form-label">Tyres brand</label><input class="form-input" id="af-tyrebrand"></div>
+        <div class="form-field full"><label class="form-label">Notes</label><input class="form-input" id="af-notes" placeholder="Optional note…"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('addOverlay')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAdd()">+ Add vehicle</button>
+    </div>
+  </div>
+</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 // ================================================================
@@ -939,7 +978,56 @@ async function saveEdit(){
   await fetchData(false);
   toast('Vehicle #'+id+' updated', 'ok');
 }
+function openAddModal(){
+  // Clear all fields
+  ['af-id','af-originid','af-model','af-fn','af-chassis','af-owner',
+   'af-km','af-lastoil','af-diag','af-regexp','af-rentdate','af-handover',
+   'af-fuelcard','af-pin','af-jawaz','af-rentmile','af-tyreref','af-tyrebrand','af-notes']
+  .forEach(id => document.getElementById(id).value = '');
+  openModal('addOverlay');
+}
 
+async function saveAdd(){
+  const id = document.getElementById('af-id').value.trim();
+  if(!id){ toast('Vehicle ID is required', 'err'); return; }
+
+  // Check for duplicate ID
+  if(vehicles.find(v => v.id === id)){
+    toast('Vehicle ID #'+id+' already exists', 'err');
+    return;
+  }
+
+  const km      = document.getElementById('af-km').value;
+  const lastoil = document.getElementById('af-lastoil').value;
+
+  const fields = {
+    'Vehicle ID':        id,
+    'Origin ID':         document.getElementById('af-originid').value,
+    'Model':             document.getElementById('af-model').value,
+    'Function':          document.getElementById('af-fn').value,
+    'Chassis':           document.getElementById('af-chassis').value,
+    'Owner':             document.getElementById('af-owner').value,
+    'Mileage':           km ? Number(km) : '',
+    'Last Oil Change':   lastoil ? Number(lastoil) : '',
+    'Next Oil Change':   lastoil ? Number(lastoil) + OIL_INTERVAL : '',
+    'Annual Diagnostic': document.getElementById('af-diag').value,
+    'Regist Exp':        document.getElementById('af-regexp').value,
+    'Rent Date':         document.getElementById('af-rentdate').value,
+    'Handover Date':     document.getElementById('af-handover').value,
+    'Fuel Card':         document.getElementById('af-fuelcard').value,
+    'PIN':               document.getElementById('af-pin').value,
+    'Jawaz':             document.getElementById('af-jawaz').value,
+    'Rent Mileage':      document.getElementById('af-rentmile').value ? Number(document.getElementById('af-rentmile').value) : '',
+    'Tyres Reference':   document.getElementById('af-tyreref').value,
+    'Tyres Brand':       document.getElementById('af-tyrebrand').value,
+    'Last Check':        '',
+  };
+
+  await postAction({ action: 'addVehicle', fields, user: getUser(), note: document.getElementById('af-notes').value });
+  closeModal('addOverlay');
+  await fetchData(false);
+  toast('Vehicle #'+id+' added', 'ok');
+}
 function openOilModal(id){
   const v=getV(id); if(!v) return;
   activeVehicleId=id;
